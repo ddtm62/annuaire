@@ -4,7 +4,7 @@ Il s'agit d'un petit logiciel qui transforme les données sous format `csv` en d
 
 ## Utilisation
 
-- Télécharger l'exécutable `csv2pdf` pour votre plate-forme (Windows, Linux, Mac) de la page des releases.
+- Télécharger l'exécutable `csv2pdf` pour votre plate-forme (Windows, Linux, Mac) de la page des [releases](https://github.com/ddtm62/annuaire/releases).
 - Mettre dans le même dossier que l'exécutable le fichier `annuaire.csv` qui doit avoir le format suivant:
 
 ```csv
