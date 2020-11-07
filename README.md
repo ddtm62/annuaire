@@ -24,6 +24,6 @@ NOM2,Prenom12,SERV3,03 00 00 00 02,06 00 00 00 02,,Observation
 - Le `pdf` retourné est enregistré dans `annuaire_portrait.pdf`.
 - La bibliothèque [pdfcpu](https://github.com/pdfcpu/pdfcpu) est utilisé pour créer la version paysage.
 
-## Et si je ne veux compiler en local ?
+## Et si je veux compiler en local ?
 
-C'est possible, mais il faut avoir une distribution LaTeX (contenant `xelatex`) installée sur votre ordinateur. Auquel cas il suffit de rajouter le paramètre `--local` pour que le fichier soit compiler en local.
+C'est possible, mais il faut avoir une distribution LaTeX (contenant `xelatex`) installée sur votre ordinateur, ainsi que la police [Roboto](https://fonts.google.com/specimen/Roboto). Auquel cas il suffit de rajouter le paramètre `--local` pour que le fichier soit compiler en local.
