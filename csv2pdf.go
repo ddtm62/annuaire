@@ -14,7 +14,7 @@ import (
 	"text/template" // pour la transformation des données en source latex
 
 	"github.com/Masterminds/sprig"               // pour des fonctions supplémentaires dans les templates
-	"github.com/markbates/pkger"                 // permet d'inclure les police et le template
+	"github.com/markbates/pkger"                 // permet d'inclure le template (et autre fichiers, comme des polices)
 	pdfapi "github.com/pdfcpu/pdfcpu/pkg/api"    // pour la création de la version paysage
 	pdfcpu "github.com/pdfcpu/pdfcpu/pkg/pdfcpu" // -- de même --
 )
@@ -79,6 +79,7 @@ func toLaTeX(agents []Agent) []byte {
 	// le resultat sera ici
 	var result bytes.Buffer
 	// Compilation du modèle
+	// en cas de changement de annuaire.template.tex il faut relancer pkger dans le dossier pour recréer `pkged.go`
 	fileAnnuaire, err := pkger.Open("/annuaire.template.tex")
 	check(err)
 	defer fileAnnuaire.Close()
