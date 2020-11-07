@@ -1,0 +1,100 @@
+\documentclass[10pt]{article} % type de document avec taille de police par défaut
+% =============================================================
+\usepackage[a4paper,margin=7mm,nohead,nomarginpar]{geometry}
+% --------------- XeLaTeX ou LuaLaTeX
+\usepackage{fontspec} % pour le bon encodage des PDFs => police lmodern
+
+% ---------------
+\usepackage[francais]{babel} % pour franciser LaTeX
+\usepackage{xcolor} % pour pouvoir utiliser des couleurs
+\usepackage{graphicx} % pour \includegraphics
+\usepackage{multicol}
+\usepackage{color}
+\usepackage{needspace} % pour éviter les lettres orphelines/veuves
+\usepackage[pdfencoding=auto]{hyperref} % pour les liens. En règle générale il doit être le dernier package chargé.
+% =============================================================
+\pagestyle{empty}
+
+% pour espacer un peut le texte
+\parskip=1mm
+\parindent=0mm
+
+% Police
+\linespread{1.1}
+\setmainfont[
+    Ligatures=TeX,
+    Scale=0.84,
+    % Path=./,
+    % UprightFont = *-Regular,
+    % BoldFont = *-Bold
+    ]{Roboto}
+\newfontfamily{\letrine}[
+    Ligatures=TeX,
+    Scale=2.1,
+    % Path=./,
+    % UprightFont = *-Regular,
+    % BoldFont = *-Bold
+    ]{Roboto}
+
+% personalisation des colonnes
+\setlength{\columnseprule}{.4pt}
+\def\columnseprulecolor{\color{gray}}
+\setlength{\columnsep}{11mm}
+
+\newlength{\nameindent}
+\setlength{\nameindent}{3mm}
+
+% redefine
+\def\thinspace{\kern 2pt}
+
+
+\begin{document}
+  \begin{center}
+    {\Huge\bfseries DDTM 62 -- Liste téléphonique}\\[4pt]
+    dernière mise à jour : {{ now | date "02-01-2006" }}
+  \end{center}
+  \smallskip
+
+%==============================================================
+\begin{multicols*}{2}
+{{ $was := index " " 0 -}}
+{{- range . -}}
+  {{- $nom := (.Nom | trim | upper | replace " " "~") -}}
+  {{- $is := index $nom 0}}
+  {{- if not (eq $is $was) }}
+    {{ $was = $is -}}
+    \needspace{\baselineskip}
+    \vskip -.11\baselineskip
+    \textcolor{gray}{\textbf{\letrine \char{{- $is -}} }}\\[.1\baselineskip]
+  {{ end -}}
+  \hspace*{\nameindent}%
+  \parbox[t]{4.2cm}{\hspace*{-\nameindent}\strut\raggedright{}
+    {{ $nom -}}
+    {{- with .Prenom }}
+      {{.}}
+    {{- end -}}
+    {{- with .Service -}}
+      ~\scalebox{.7}{\textsc{[{{.}}]}}
+    {{- end -}}
+  \strut}
+  {{- $fixe := (regexReplaceAll "(\\d) (\\d)" (.Fixe | trim) "${1}\\thinspace{}${2}") -}}
+  {{- $fixe = (regexReplaceAll "\\s+(\\d)" $fixe "~${1}") -}}
+  \hspace{1em}
+  \parbox[t]{4.9cm}{\strut\raggedright{}{{- $fixe -}}
+  {{- if and (ne .Fixe "") (ne .Portable "") -}}
+    {{- if (ne .Renvoi "") -}}
+      ~$\Rightarrow$
+    {{ else -}}
+      ~/
+    {{ end -}}
+  {{- end -}}
+  {{ .Portable | replace " " "\\thinspace{}" -}}
+  {{- if (ne .Averifier "") -}}
+    \textcolor{gray}{\textsuperscript{?}}
+  {{- end -}}
+  \strut}
+  \newline
+{{- end -}}
+\end{multicols*}
+%==============================================================
+\end{document}
