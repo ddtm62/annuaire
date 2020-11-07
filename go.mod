@@ -1,4 +1,4 @@
-module main
+module github.com/ddtm62/annuaire
 
 go 1.15
 
