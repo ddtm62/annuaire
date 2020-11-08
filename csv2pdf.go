@@ -32,9 +32,17 @@ type Agent struct {
 }
 
 // Vérification des erreurs
-func check(e error) {
+func check(e error, m ...interface{}) {
 	if e != nil {
-		fmt.Printf("\nError %v\n\n", e)
+		if len(m) > 0 {
+			fmt.Print("\nErreur : ")
+			fmt.Print(m...)
+		} else {
+			fmt.Print("\nErreur.")
+		}
+		fmt.Printf("\nMessage (en anglais) sur l'erreur:\n%v\n\n", e)
+		fmt.Printf("\nAppuyer sur « entrer » pour finir.")
+		fmt.Scanln()
 		panic(e)
 	}
 }
@@ -46,7 +54,7 @@ func toData(csvname string) []Agent {
 	fmt.Println("Lecture des donnés de", csvname)
 	// lecture du fichier csv
 	csvFile, err := ioutil.ReadFile(csvname)
-	check(err)
+	check(err, "Problème de lecture de", csvname)
 	fmt.Println("Conversion des donnés")
 	// conversion du csv en []Agent
 	r := csv.NewReader(bytes.NewReader(csvFile))
@@ -57,7 +65,7 @@ func toData(csvname string) []Agent {
 		if err == io.EOF {
 			break
 		}
-		check(err)
+		check(err, "Problème de scanneur csv dans", csvname)
 		// la première ligne du csv est ignorée
 		if first {
 			first = false
@@ -81,17 +89,16 @@ func toLaTeX(agents []Agent) []byte {
 	// Compilation du modèle
 	// en cas de changement de annuaire.template.tex il faut relancer pkger dans le dossier pour recréer `pkged.go`
 	fileAnnuaire, err := pkger.Open("/annuaire.template.tex")
-	check(err)
+	check(err, "Problème lors de l'ouverture du modèle latex.")
 	defer fileAnnuaire.Close()
-	check(err)
 	b, err := ioutil.ReadAll(fileAnnuaire)
-	check(err)
+	check(err, "Problème lors de la lecture du modèle latex.")
 	t, err := template.New("annuaire").Funcs(sprig.TxtFuncMap()).Parse(string(b))
-	check(err)
+	check(err, "Problème lors de la compilation du modèle latex.")
 
 	// Transformation du modèle en source latex en utilisant les données
 	err = t.Execute(&result, agents)
-	check(err)
+	check(err, "Problème lors de la création de la source latex.")
 
 	return result.Bytes()
 }
@@ -127,12 +134,12 @@ func toPDF(content []byte) []byte {
 	// https://github.com/YtoTech/latex-on-http
 	body := strings.NewReader(json)
 	resp, err := http.Post("https://latex.ytotech.com/builds/sync", "application/json", body)
-	check(err)
+	check(err, "Problème lors de l'envoi de la source pour compilation.")
 	defer resp.Body.Close()
 
 	// lecture de la réponse
 	pdf, err := ioutil.ReadAll(resp.Body)
-	check(err)
+	check(err, "Problème lors de la réception du pdf.")
 
 	return pdf
 }
@@ -158,14 +165,14 @@ func main() {
 		fmt.Printf("Version portrait PDF dans %s.pdf\n", portraitName)
 		// lecture de la version portrait (pour la transformer en paysage après)
 		portrait, err = ioutil.ReadFile(portraitName + ".pdf")
-		check(err)
+		check(err, "Problème lors de la lecture de", portraitName+".pdf")
 	} else {
 		baseName = "annuaire"
 		portraitName = baseName + "_portrait"
 		portrait = toPDF(toLaTeX(toData("annuaire.csv")))
 		// enregistrement de la version portrait
 		err = ioutil.WriteFile(portraitName+".pdf", portrait, 0644)
-		check(err)
+		check(err, "Problème lors de l'écriture de", portraitName+".pdf")
 		fmt.Printf("Version portrait PDF dans %s.pdf\n", portraitName)
 	}
 	// création de la version paysage
@@ -173,14 +180,14 @@ func main() {
 	// changement de l'ordre des pages
 	fmt.Printf("Change l'ordre des pages 4,1,2,3...\n")
 	err = pdfapi.Collect(bytes.NewReader(portrait), &temp, []string{"1", "4", "3", "2"}, nil)
-	check(err)
+	check(err, "Problème lors de la transformation du pdf.")
 	// combinaison des pages deux par deux
 	fmt.Printf("Combine deux pages sur une...\n")
 	nup, _ := pdfcpu.PDFNUpConfig(2, "f:A4,b:on, m:7")
 	err = pdfapi.NUp(bytes.NewReader(temp.Bytes()), &landscape, nil, nil, nup, nil)
-	check(err)
+	check(err, "Problème lors de la transformation du pdf.")
 	// enregistrement de la version paysage
 	err = ioutil.WriteFile(landscapeName+".pdf", landscape.Bytes(), 0644)
-	check(err)
+	check(err, "Problème lors de l'écriture de", landscapeName+".pdf")
 	fmt.Printf("Version paysage dans %s.pdf\n", landscapeName)
 }
