@@ -26,7 +26,7 @@ NOM2,Prenom12,SERV3,03 00 00 00 02,06 00 00 00 02,,Observation
 
 ## Et si je veux compiler en local ?
 
-C'est possible, mais il faut avoir une distribution LaTeX (contenant `xelatex`) installée sur votre ordinateur, ainsi que la police [Roboto](https://fonts.google.com/specimen/Roboto). Auquel cas il suffit de rajouter le paramètre `--local` pour que le fichier soit compiler en local.
+C'est possible, mais il faut avoir une distribution LaTeX (contenant `xelatex`) ou [tectonic](https://tectonic-typesetting.github.io/) installée sur votre ordinateur, ainsi que la police [Roboto](https://fonts.google.com/specimen/Roboto). Auquel cas il suffit de rajouter le paramètre `--utiliser=xelatex` ou `--utiliser=tectonic` pour que le fichier soit compiler en local.
 
 ## Comment compiler les sources
 

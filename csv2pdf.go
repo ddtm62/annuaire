@@ -17,7 +17,70 @@ import (
 	"github.com/markbates/pkger"                 // permet d'inclure le template (et autre fichiers, comme des polices)
 	pdfapi "github.com/pdfcpu/pdfcpu/pkg/api"    // pour la création de la version paysage
 	pdfcpu "github.com/pdfcpu/pdfcpu/pkg/pdfcpu" // -- de même --
+	flag "github.com/spf13/pflag"                // pour les paramètres
 )
+
+// quelques variables globales
+var (
+	// la version du logiciel (remplacée lors de la compilation)
+	version = "--"
+	// la methode pour compiler le .tex (valeur de --utiliser)
+	sEngine  string
+	bVersion bool
+	bHelp    bool
+	// une variable temporaire d'erreur
+	err error
+)
+
+// Aide affiche l'aide d'utilisation
+func Aide() {
+	var out = flag.CommandLine.Output()
+	fmt.Fprintf(out, "csv2pdf (version: %s)\n\n", version)
+	fmt.Fprintf(out, "Ce programme transforme annuaire.csv en pdf.\n")
+	fmt.Fprintf(out, "Il génère 2 versions (portrait et paysage).\n")
+	fmt.Fprintf(out, "\n")
+	flag.PrintDefaults()
+	fmt.Fprintf(out, "\n")
+}
+
+// Imprime la version
+func printVersion() {
+	var out = flag.CommandLine.Output()
+	fmt.Fprintf(out, "version: %s\n", version)
+}
+
+func SetParameters() {
+	flag.StringVar(&sEngine, "utiliser", "web", "Comment compiler le .tex [tectonic|xelatex|web].")
+	flag.BoolVarP(&bVersion, "version", "v", false, "Affiche le numéro de version.")
+	flag.BoolVarP(&bHelp, "aide", "h", false, "Imprime ce message d'aide.")
+	// garde l'ordre des paramètres dans l'aide
+	flag.CommandLine.SortFlags = false
+	// installe la traduction des messages en français
+	flag.CommandLine.SetOutput(FrenchTranslator{flag.CommandLine.Output()})
+	// le message d'aide
+	flag.Usage = Aide
+	// en cas d'erreur ne pas afficher l'erreur une deuxième fois
+	flag.CommandLine.Init("marianne", flag.ContinueOnError)
+
+	// récupère les flags
+	err = flag.CommandLine.Parse(os.Args[1:])
+	// affiche l'aide si demandé ou si erreur de paramètre
+	if bHelp || err != nil {
+		flag.Usage()
+		if err != nil {
+			fmt.Fprintln(flag.CommandLine.Output(), "ERREUR : ", err)
+			os.Exit(2)
+		} else {
+			os.Exit(0)
+		}
+	}
+
+	// montrer la version ?
+	if bVersion {
+		printVersion()
+		os.Exit(0)
+	}
+}
 
 // Les données tels qu'il sont présents (dans l'ordre) dans le csv
 // (la première ligne du csv est ignorée)
@@ -149,19 +212,21 @@ func main() {
 		portrait                              []byte
 		landscape, temp                       bytes.Buffer
 		baseName, portraitName, landscapeName string
-		err                                   error
 	)
 
+	// parse the flags
+	SetParameters()
+
 	// création de la version portrait
-	if len(os.Args) > 1 && os.Args[1] == "--local" {
+	if sEngine == "xelatex" || sEngine == "tectonic" {
 		baseName = "annuaire_local"
 		portraitName = baseName + "_portrait"
 		fmt.Printf("Creation de %s.tex\n", portraitName)
 		// enregistrement de la source latex à compiler
 		ioutil.WriteFile(portraitName+".tex", toLaTeX(toData("annuaire.csv")), 0644)
 		// compilation en local
-		fmt.Printf("xelatex %s.tex\n", portraitName)
-		exec.Command("xelatex", portraitName+".tex").Run()
+		fmt.Printf(sEngine+" %s.tex\n", portraitName)
+		exec.Command(sEngine, portraitName+".tex").Run()
 		fmt.Printf("Version portrait PDF dans %s.pdf\n", portraitName)
 		// lecture de la version portrait (pour la transformer en paysage après)
 		portrait, err = ioutil.ReadFile(portraitName + ".pdf")
