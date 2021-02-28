@@ -8,7 +8,6 @@ require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/gocarina/gocsv v0.0.0-20201103164230-b291445e0dd2
 	github.com/google/uuid v1.1.2 // indirect
-	github.com/gookit/color v1.3.2 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.11 // indirect
 	github.com/magefile/mage v1.10.0

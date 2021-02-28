@@ -24,16 +24,20 @@
 \setmainfont[
     Ligatures=TeX,
     Scale=0.84,
-    % Path=./,
-    % UprightFont = *-Regular,
-    % BoldFont = *-Bold
+{{- if .IsLocal }}
+    Path=./,
+    UprightFont = *-Regular,
+    BoldFont = *-Bold
+{{ end -}}
     ]{Roboto}
 \newfontfamily{\letrine}[
     Ligatures=TeX,
     Scale=2.1,
-    % Path=./,
-    % UprightFont = *-Regular,
-    % BoldFont = *-Bold
+{{- if .IsLocal }}
+    Path=./,
+    UprightFont = *-Regular,
+    BoldFont = *-Bold
+{{ end -}}
     ]{Roboto}
 
 % personalisation des colonnes
@@ -58,7 +62,7 @@
 %==============================================================
 \begin{multicols*}{2}
 {{ $was := index " " 0 -}}
-{{- range . -}}
+{{- range .Agents -}}
   {{- $nom := (.Nom | trim | upper | replace " " "~") -}}
   {{- $is := index $nom 0}}
   {{- if not (eq $is $was) }}

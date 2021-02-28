@@ -50,7 +50,7 @@ func printVersion() {
 }
 
 func SetParameters() {
-	flag.StringVar(&sEngine, "utiliser", "web", "Comment compiler le .tex [tectonic|xelatex|web].")
+	flag.StringVar(&sEngine, "utiliser", "tectonic", "Comment compiler le .tex [tectonic|xelatex|web].")
 	flag.BoolVarP(&bVersion, "version", "v", false, "Affiche le numéro de version.")
 	flag.BoolVarP(&bHelp, "aide", "h", false, "Imprime ce message d'aide.")
 	// garde l'ordre des paramètres dans l'aide
@@ -141,6 +141,11 @@ func toData(csvname string) []Agent {
 	return agents
 }
 
+type TemplateData struct {
+	Agents  []Agent
+	IsLocal bool
+}
+
 // Utilisation des données des agent []Agent pour produire la source latex à compiler.
 // Cette transformation est basée sur le modèle `annuaire.template.tex`.
 // Ce modèle est intégré à l'exécutable grâce `pkger`.
@@ -160,7 +165,7 @@ func toLaTeX(agents []Agent) []byte {
 	check(err, "Problème lors de la compilation du modèle latex.")
 
 	// Transformation du modèle en source latex en utilisant les données
-	err = t.Execute(&result, agents)
+	err = t.Execute(&result, TemplateData{Agents: agents, IsLocal: sEngine != "web"})
 	check(err, "Problème lors de la création de la source latex.")
 
 	return result.Bytes()
@@ -225,12 +230,20 @@ func main() {
 		// enregistrement de la source latex à compiler
 		ioutil.WriteFile(portraitName+".tex", toLaTeX(toData("annuaire.csv")), 0644)
 		// compilation en local
+		args := []string{portraitName + ".tex"}
+		if sEngine == "xelatex" {
+			args = []string{"-interaction=nonstopmode", "-halt-on-error", portraitName + ".tex"}
+		}
 		fmt.Printf(sEngine+" %s.tex\n", portraitName)
-		exec.Command(sEngine, portraitName+".tex").Run()
+		err = exec.Command(sEngine, args...).Run()
+		check(err, "Problème lors de la compilation avec ", sEngine)
 		fmt.Printf("Version portrait PDF dans %s.pdf\n", portraitName)
 		// lecture de la version portrait (pour la transformer en paysage après)
 		portrait, err = ioutil.ReadFile(portraitName + ".pdf")
 		check(err, "Problème lors de la lecture de", portraitName+".pdf")
+		// supression des sources .tex
+		fmt.Printf("Supression de %s.tex\n", portraitName)
+		os.Remove(portraitName + ".tex")
 	} else {
 		baseName = "annuaire"
 		portraitName = baseName + "_portrait"
