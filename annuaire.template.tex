@@ -9,6 +9,7 @@
 \usepackage{xcolor} % pour pouvoir utiliser des couleurs
 \usepackage{graphicx} % pour \includegraphics
 \usepackage{multicol}
+  \setlength{\columnsep}{1pt}
 \usepackage{color}
 \usepackage{needspace} % pour éviter les lettres orphelines/veuves
 \usepackage[pdfencoding=auto]{hyperref} % pour les liens. En règle générale il doit être le dernier package chargé.
@@ -25,7 +26,7 @@
     Ligatures=TeX,
     Scale=0.84,
 {{- if .IsLocal }}
-    Path=./,
+    Path=fonts/,
     UprightFont = *-Regular,
     BoldFont = *-Bold
 {{ end -}}
@@ -34,7 +35,7 @@
     Ligatures=TeX,
     Scale=2.1,
 {{- if .IsLocal }}
-    Path=./,
+    Path=fonts/,
     UprightFont = *-Regular,
     BoldFont = *-Bold
 {{ end -}}
@@ -64,13 +65,15 @@
 {{ $was := index " " 0 -}}
 {{- range .Agents -}}
   {{- $nom := (.Nom | trim | upper | replace " " "~") -}}
-  {{- $is := index $nom 0}}
-  {{- if not (eq $is $was) }}
-    {{ $was = $is -}}
+  {{- $is := index $nom 0 -}}
+  {{- if not (eq $is $was) -}}
+    {{- $was = $is -}}
+  % ======================================================
     \needspace{\baselineskip}
     \vskip -.11\baselineskip
     \textcolor{gray}{\textbf{\letrine \char{{- $is -}} }}\\[.1\baselineskip]
   {{ end -}}
+  % ------------------------------------------------------
   \hspace*{\nameindent}%
   \parbox[t]{4.2cm}{\hspace*{-\nameindent}\strut\raggedright{}
     {{ $nom -}}
@@ -83,7 +86,7 @@
   \strut}
   {{- $fixe := (regexReplaceAll "(\\d) (\\d)" (.Fixe | trim) "${1}\\thinspace{}${2}") -}}
   {{- $fixe = (regexReplaceAll "\\s+(\\d)" $fixe "~${1}") -}}
-  \hspace{1em}
+  \hspace{1em}%
   \parbox[t]{4.9cm}{\strut\raggedright{}{{- $fixe -}}
   {{- if and (ne .Fixe "") (ne .Portable "") -}}
     {{- if (ne .Renvoi "") -}}
@@ -96,9 +99,9 @@
   {{- if (ne .Averifier "") -}}
     \textcolor{gray}{\textsuperscript{?}}
   {{- end -}}
-  \strut}
+  \strut}\hspace*{-7pt}%
   \newline
-{{- end -}}
+{{ end }}
 \end{multicols*}
 %==============================================================
 \end{document}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	_ "embed"
 	"encoding/base64" // pour l'envoi de la source latex pour une compilation à distance
 	"encoding/csv"    // pour la lecture des données
 	"fmt"
@@ -14,7 +15,6 @@ import (
 	"text/template" // pour la transformation des données en source latex
 
 	"github.com/Masterminds/sprig"               // pour des fonctions supplémentaires dans les templates
-	"github.com/markbates/pkger"                 // permet d'inclure le template (et autre fichiers, comme des polices)
 	pdfapi "github.com/pdfcpu/pdfcpu/pkg/api"    // pour la création de la version paysage
 	pdfcpu "github.com/pdfcpu/pdfcpu/pkg/pdfcpu" // -- de même --
 	flag "github.com/spf13/pflag"                // pour les paramètres
@@ -146,8 +146,11 @@ type TemplateData struct {
 	IsLocal bool
 }
 
+//go:embed annuaire.template.tex
+var latexTemplate string
+
 // Utilisation des données des agent []Agent pour produire la source latex à compiler.
-// Cette transformation est basée sur le modèle `annuaire.template.tex`.
+// Cette transformation est basée sur le modèle `annuaire.template.tex` qui est stocké dans latexTemplate.
 // Ce modèle est intégré à l'exécutable grâce `pkger`.
 func toLaTeX(agents []Agent) []byte {
 	fmt.Println("Transformation en LaTeX")
@@ -155,13 +158,7 @@ func toLaTeX(agents []Agent) []byte {
 	// le resultat sera ici
 	var result bytes.Buffer
 	// Compilation du modèle
-	// en cas de changement de annuaire.template.tex il faut relancer pkger dans le dossier pour recréer `pkged.go`
-	fileAnnuaire, err := pkger.Open("/annuaire.template.tex")
-	check(err, "Problème lors de l'ouverture du modèle latex.")
-	defer fileAnnuaire.Close()
-	b, err := ioutil.ReadAll(fileAnnuaire)
-	check(err, "Problème lors de la lecture du modèle latex.")
-	t, err := template.New("annuaire").Funcs(sprig.TxtFuncMap()).Parse(string(b))
+	t, err := template.New("annuaire").Funcs(sprig.TxtFuncMap()).Parse(latexTemplate)
 	check(err, "Problème lors de la compilation du modèle latex.")
 
 	// Transformation du modèle en source latex en utilisant les données
@@ -224,7 +221,7 @@ func main() {
 
 	// création de la version portrait
 	if sEngine == "xelatex" || sEngine == "tectonic" {
-		baseName = "annuaire_local"
+		baseName = "annuaire"
 		portraitName = baseName + "_portrait"
 		fmt.Printf("Creation de %s.tex\n", portraitName)
 		// enregistrement de la source latex à compiler
@@ -235,8 +232,12 @@ func main() {
 			args = []string{"-interaction=nonstopmode", "-halt-on-error", portraitName + ".tex"}
 		}
 		fmt.Printf(sEngine+" %s.tex\n", portraitName)
-		err = exec.Command(sEngine, args...).Run()
-		check(err, "Problème lors de la compilation avec ", sEngine)
+		var cmdOutput strings.Builder
+		cmd := exec.Command(sEngine, args...)
+		cmd.Stdout = &cmdOutput
+		cmd.Stderr = &cmdOutput
+		err = cmd.Run()
+		check(err, "Problème lors de la compilation avec ", sEngine, "\n", cmd.Stdout)
 		fmt.Printf("Version portrait PDF dans %s.pdf\n", portraitName)
 		// lecture de la version portrait (pour la transformer en paysage après)
 		portrait, err = ioutil.ReadFile(portraitName + ".pdf")
@@ -245,8 +246,9 @@ func main() {
 		fmt.Printf("Supression de %s.tex\n", portraitName)
 		os.Remove(portraitName + ".tex")
 	} else {
-		baseName = "annuaire"
+		baseName = "annuaire_web"
 		portraitName = baseName + "_portrait"
+		// transformation et compilation à distance
 		portrait = toPDF(toLaTeX(toData("annuaire.csv")))
 		// enregistrement de la version portrait
 		err = ioutil.WriteFile(portraitName+".pdf", portrait, 0644)
