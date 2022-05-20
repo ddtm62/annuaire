@@ -32,6 +32,15 @@ Pour compiler avec `xelatex` au lieu de `tectonic` il faut avoir une distributio
 Et si vous voulez produire les pdfs sans devoir à installer `tectonic` (ou `xelatex`) et les polices `Roboto`, vous pouvez compiler via le service https://latex.ytotech.com/builds/sync, auquel cas il suffit de rajouter `--utiliser=web`.
 Les fichiers ainsi produits sont nommés `annuaire_web_paysage.pdf` et `annuaire_web_portrait.pdf`.
 
+## Utilisation de tectonic exlusivement en local
+
+À la première utilisation `tectonic` se connecte à internet pour mettre à jour le cache. Pour savoir ou se trouve le cache il faut executer la commande
+
+```bash
+>  tectonic -X show user-cache-dir
+```
+Si votre ordinateur ne permet pas à `tectonic` de se connecter à internet pour mettre le cache à jour, il faut le faire à la main : il faut décompresser le fichier [Tectonic.zip](https://github.com/ddtm62/annuaire/raw/main/Tectonic.zip) dans le repertoire en question.
+
 ## Comment compiler les sources
 
 Ce logiciel est écrit en [Go](https://golang.org/) qui doit être présent sur votre machine pour pouvoir compiler les sources.

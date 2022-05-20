@@ -25,9 +25,13 @@ var (
 	// la version du logiciel (remplacée lors de la compilation)
 	version = "--"
 	// la methode pour compiler le .tex (valeur de --utiliser)
-	sEngine  string
+	sEngine string
+	// la valeur de --tectonic-update
+	bTectonicUpdate bool
+	// la valeur de --version
 	bVersion bool
-	bHelp    bool
+	// la valeur de --help
+	bHelp bool
 	// une variable temporaire d'erreur
 	err error
 )
@@ -50,7 +54,8 @@ func printVersion() {
 }
 
 func SetParameters() {
-	flag.StringVar(&sEngine, "utiliser", "tectonic", "Comment compiler le .tex [tectonic|xelatex|web].")
+	flag.StringVarP(&sEngine, "utiliser", "u", "tectonic", "Comment compiler le .tex [tectonic|xelatex|web].")
+	flag.BoolVar(&bTectonicUpdate, "tectonic-update", false, "Mettre à jour le cach de tectonic.")
 	flag.BoolVarP(&bVersion, "version", "v", false, "Affiche le numéro de version.")
 	flag.BoolVarP(&bHelp, "aide", "h", false, "Imprime ce message d'aide.")
 	// garde l'ordre des paramètres dans l'aide
@@ -229,7 +234,9 @@ func main() {
 		// compilation en local
 		args := []string{portraitName + ".tex"}
 		if sEngine == "xelatex" {
-			args = []string{"-interaction=nonstopmode", "-halt-on-error", portraitName + ".tex"}
+			args = append([]string{"-interaction=nonstopmode", "-halt-on-error"}, args...)
+		} else if !bTectonicUpdate {
+			args = append([]string{"-C"}, args...)
 		}
 		fmt.Printf(sEngine+" %s.tex\n", portraitName)
 		var cmdOutput strings.Builder
