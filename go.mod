@@ -5,7 +5,6 @@ go 1.18
 require (
 	github.com/Masterminds/sprig v2.22.0+incompatible
 	github.com/gocarina/gocsv v0.0.0-20201103164230-b291445e0dd2
-	github.com/magefile/mage v1.10.0
 	github.com/pdfcpu/pdfcpu v0.3.7
 	github.com/spf13/pflag v1.0.6-0.20201009195203-85dd5c8bc61c
 )
