@@ -15,14 +15,11 @@ builds:
       - windows
       - darwin
     goarch:
-      - 386
       - amd64
       - arm64
     targets:
       - windows_amd64
-      - windows_386
       - linux_amd64
-      - linux_386
       - darwin_amd64
       - darwin_arm64
     ldflags:
@@ -34,6 +31,7 @@ archives:
       windows: Windows
       386: 32bit
       amd64: 64bit
+      arm64: arm64bit
     format_overrides:
       - goos: windows
         format: zip
