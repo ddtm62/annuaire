@@ -54,7 +54,7 @@ func printVersion() {
 }
 
 func SetParameters() {
-	flag.StringVarP(&sEngine, "utiliser", "u", "tectonic", "Comment compiler le .tex [tectonic|xelatex|web].")
+	flag.StringVarP(&sEngine, "utiliser", "u", "tectonic", "Comment compiler le .tex [tectonic|xelatex|web|no].")
 	flag.BoolVar(&bTectonicUpdate, "tectonic-update", false, "Mettre à jour le cach de tectonic.")
 	flag.BoolVarP(&bVersion, "version", "v", false, "Affiche le numéro de version.")
 	flag.BoolVarP(&bHelp, "aide", "h", false, "Imprime ce message d'aide.")
@@ -225,12 +225,18 @@ func main() {
 	SetParameters()
 
 	// création de la version portrait
-	if sEngine == "xelatex" || sEngine == "tectonic" {
+	switch sEngine {
+	case "xelatex", "tectonic", "no":
 		baseName = "annuaire"
 		portraitName = baseName + "_portrait"
 		fmt.Printf("Creation de %s.tex\n", portraitName)
 		// enregistrement de la source latex à compiler
-		ioutil.WriteFile(portraitName+".tex", toLaTeX(toData("annuaire.csv")), 0644)
+		err = ioutil.WriteFile(portraitName+".tex", toLaTeX(toData("annuaire.csv")), 0644)
+		check(err, "Problème lors de l'écriture de", portraitName+".tex")
+		if sEngine == "no" {
+			fmt.Printf("Pas de compilation demandée.\n")
+			os.Exit(0)
+		}
 		// compilation en local
 		args := []string{portraitName + ".tex"}
 		if sEngine == "xelatex" {
@@ -252,7 +258,7 @@ func main() {
 		// supression des sources .tex
 		fmt.Printf("Supression de %s.tex\n", portraitName)
 		os.Remove(portraitName + ".tex")
-	} else {
+	case "web":
 		baseName = "annuaire_web"
 		portraitName = baseName + "_portrait"
 		// transformation et compilation à distance
@@ -261,6 +267,9 @@ func main() {
 		err = ioutil.WriteFile(portraitName+".pdf", portrait, 0644)
 		check(err, "Problème lors de l'écriture de", portraitName+".pdf")
 		fmt.Printf("Version portrait PDF dans %s.pdf\n", portraitName)
+	default:
+		fmt.Print("\nErreur : le compilateur (-u) '", sEngine, "' n'est pas autorisé.")
+		os.Exit(1)
 	}
 	// création de la version paysage
 	landscapeName = baseName + "_paysage"
